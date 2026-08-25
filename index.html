@@ -27,7 +27,7 @@ header h1{margin:0;font-size:clamp(1.5rem,4vw,2.4rem)} header p{margin:8px auto 
 <header><h1>♻️ ¡CLASIFICA CORRECTAMENTE LOS RESIDUOS EN LA OBRA! 🏗️</h1><p>Aprende a separar correctamente los residuos generados en una obra de construcción.</p></header>
 <div class="container">
 <section id="start" class="panel start"><div class="helmet">👷‍♂️🦺</div><h2>¿SABES DÓNDE DEPOSITAR CADA RESIDUO?</h2><p>Relaciona cada residuo con el tacho correcto. Hay <strong>18 elementos</strong>. ¡Demuestra cuánto sabes!</p><button onclick="startGame()">▶️ COMENZAR JUEGO</button><div class="legend"><span class="green">🟢 Orgánicos</span><span class="blue">🔵 Plásticos</span><span class="black">⚫ Comunes</span><span class="gray">⚪ Papel y cartón</span><span class="red">🔴 Peligrosos</span><span class="orange">🟠 Metálicos</span></div></section>
-<section id="game" class="hidden"><div class="stats"><div class="badge">Pregunta <span id="qnum">1</span>/18</div><div class="badge">✅ Correctas: <span id="correct">0</span></div><div class="badge">❌ Intentos incorrectos: <span id="wrong">0</span></div><div class="badge">⭐ Puntos: <span id="points">0</span></div></div><div class="progress"><div id="bar"></div></div><div class="panel"><div class="game"><div><div class="card-title">RESIDUO</div><div class="residue-card"><img id="resImage" class="residue-image" src="" alt="Imagen del residuo"><div class="residue-name" id="resName"></div><div class="hint" id="resHint">Selecciona el tacho donde debe depositarse.</div></div></div><div><div class="card-title">ELIGE EL TACHO CORRECTO</div><div class="bins" id="bins"></div></div></div><div id="feedback" class="feedback"></div></div></section>
+<section id="game" class="hidden"><div class="stats"><div class="badge">Pregunta <span id="qnum">1</span>/18</div><div class="badge">✅ Correctas: <span id="correct">0</span></div><div class="badge">❌ Intentos incorrectos: <span id="wrong">0</span></div><div class="badge">⭐ Puntos: <span id="points">0</span></div><div class="badge">⏱️ Tiempo: <span id="timer">0:00</span></div></div><div class="progress"><div id="bar"></div></div><div class="panel"><div class="game"><div><div class="card-title">RESIDUO</div><div class="residue-card"><img id="resImage" class="residue-image" src="" alt="Imagen del residuo"><div class="residue-name" id="resName"></div><div class="hint" id="resHint">Selecciona el tacho donde debe depositarse.</div></div></div><div><div class="card-title">ELIGE EL TACHO CORRECTO</div><div class="bins" id="bins"></div></div></div><div id="feedback" class="feedback"></div></div></section>
 <section id="result" class="panel result hidden"><div style="font-size:4rem">🎉</div><h2>¡FELICIDADES!</h2><p><strong>Cada residuo correctamente clasificado ayuda a mantener nuestra obra más limpia, segura y amigable con el ambiente. 🌎♻️</strong></p><p><strong>¡EN LA OBRA, SEPARAR CORRECTAMENTE TAMBIÉN ES CUIDAR EL AMBIENTE!</strong></p><div class="score" id="finalScore">0/18</div><p>Respuestas correctas: <strong id="finalCorrect"></strong><br>Intentos incorrectos: <strong id="finalWrong"></strong><br>Porcentaje de aciertos: <strong id="finalPct"></strong></p><h3 id="finalMessage"></h3><p style="font-size:1.2rem">♻️ <strong>¡SEPARA – CLASIFICA – CUIDA! 🏗️🌎</strong></p><button onclick="location.reload()">🔄 JUGAR NUEVAMENTE</button></section>
 </div>
 <script>
@@ -56,6 +56,17 @@ const URL_GOOGLE_SHEETS="https://script.google.com/macros/s/AKfycbyBNaRaG6XBCrdx
 
 let nombreJugador="";
 let order=[],index=0,correct=0,wrong=0,points=0,locked=false;
+let tiempoInicio=0;
+let intervaloTiempo=null;
+let tiempoSegundos=0;
+
+function actualizarCronometro(){
+  tiempoSegundos=Math.floor((Date.now()-tiempoInicio)/1000);
+  const minutos=Math.floor(tiempoSegundos/60);
+  const segundos=String(tiempoSegundos%60).padStart(2,"0");
+  const timer=document.getElementById("timer");
+  if(timer) timer.textContent=minutos+":"+segundos;
+}
 
 function guardarResultado(){
   fetch(URL_GOOGLE_SHEETS,{
@@ -64,10 +75,13 @@ function guardarResultado(){
     headers:{"Content-Type":"text/plain;charset=utf-8"},
     body:JSON.stringify({
       nombre:nombreJugador,
-      puntuacion:points
+      puntuacion:points,
+      tiempo:tiempoSegundos,
+      tiempo_formateado:Math.floor(tiempoSegundos/60)+":"+String(tiempoSegundos%60).padStart(2,"0")
     })
   });
 }
+
 function startGame(){
 
   nombreJugador=prompt("👤 INGRESA TU NOMBRE PARA COMENZAR:");
@@ -82,18 +96,32 @@ function startGame(){
     alert("⚠️ Debes ingresar tu nombre para comenzar.");
     return;
   }
+
   document.getElementById('start').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
+
   order=[...items].sort(()=>Math.random()-.5);
   index=0;
   correct=0;
   wrong=0;
   points=0;
+  tiempoInicio=Date.now();
+  tiempoSegundos=0;
+
+  if(intervaloTiempo) clearInterval(intervaloTiempo);
+  intervaloTiempo=setInterval(actualizarCronometro,1000);
+  actualizarCronometro();
+
   render();
 }
   function render(){locked=false;const x=order[index];document.getElementById('qnum').textContent=index+1;document.getElementById('resName').textContent=x[1];const img=document.getElementById('resImage');img.src=x[3];img.style.display='block';document.getElementById('feedback').textContent='';document.getElementById('feedback').className='feedback';document.getElementById('correct').textContent=correct;document.getElementById('wrong').textContent=wrong;document.getElementById('points').textContent=points;document.getElementById('bar').style.width=((index)/order.length*100)+'%';const wrap=document.getElementById('bins');wrap.innerHTML='';[...bins].sort(()=>Math.random()-.5).forEach(b=>{const el=document.createElement('button');el.className='bin '+b.id;el.innerHTML=`<div class="binicon">${b.color}</div><div>${b.name}</div><div style="font-size:.78rem;margin-top:5px">${b.cat}</div>`;el.onclick=()=>choose(b.id);wrap.appendChild(el);});}
 function choose(id){if(locked)return;const item=order[index];if(id===item[2]){locked=true;correct++;points+=10;const f=document.getElementById('feedback');f.textContent='✅ ¡CORRECTO! Muy bien.';f.className='feedback ok';document.getElementById('correct').textContent=correct;document.getElementById('points').textContent=points;setTimeout(()=>{index++;if(index<order.length)render();else finish();},850);}else{wrong++;points=Math.max(0,points-1);const f=document.getElementById('feedback');f.textContent='❌ ¡INTÉNTALO NUEVAMENTE! Revisa el tipo de residuo.';f.className='feedback no';document.getElementById('wrong').textContent=wrong;document.getElementById('points').textContent=points;}}
 function finish(){
+  if(intervaloTiempo){
+    clearInterval(intervaloTiempo);
+    intervaloTiempo=null;
+  }
+  actualizarCronometro();
   document.getElementById('game').classList.add('hidden');
   document.getElementById('result').classList.remove('hidden');
 
