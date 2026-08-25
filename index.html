@@ -68,19 +68,6 @@ function guardarResultado(){
     })
   });
 }
-let order=[],index=0,correct=0,wrong=0,points=0,locked=false;
-
-function guardarResultado(){
-  fetch(URL_GOOGLE_SHEETS,{
-    method:"POST",
-    mode:"no-cors",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({
-      nombre:nombreJugador,
-      puntuacion:points
-    })
-  });
-}
 function startGame(){
 
   nombreJugador=prompt("👤 INGRESA TU NOMBRE PARA COMENZAR:");
