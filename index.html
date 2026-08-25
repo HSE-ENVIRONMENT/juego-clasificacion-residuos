@@ -85,28 +85,26 @@ function startGame(){
 
   nombreJugador=prompt("👤 INGRESA TU NOMBRE PARA COMENZAR:");
 
-  if(!nombreJugador || !nombreJugador.trim()){
-    alert("⚠️ Debes ingresar tu nombre para comenzar.");
+  if(nombreJugador===null){
     return;
   }
 
   nombreJugador=nombreJugador.trim();
 
+  if(nombreJugador===""){
+    alert("⚠️ Debes ingresar tu nombre para comenzar.");
+    return;
+  }
   document.getElementById('start').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
-
   order=[...items].sort(()=>Math.random()-.5);
-
   index=0;
   correct=0;
   wrong=0;
   points=0;
-
   render();
 }
-
-
-function render(){locked=false;const x=order[index];document.getElementById('qnum').textContent=index+1;document.getElementById('resName').textContent=x[1];const img=document.getElementById('resImage');img.src=x[3];img.style.display='block';document.getElementById('feedback').textContent='';document.getElementById('feedback').className='feedback';document.getElementById('correct').textContent=correct;document.getElementById('wrong').textContent=wrong;document.getElementById('points').textContent=points;document.getElementById('bar').style.width=((index)/order.length*100)+'%';const wrap=document.getElementById('bins');wrap.innerHTML='';[...bins].sort(()=>Math.random()-.5).forEach(b=>{const el=document.createElement('button');el.className='bin '+b.id;el.innerHTML=`<div class="binicon">${b.color}</div><div>${b.name}</div><div style="font-size:.78rem;margin-top:5px">${b.cat}</div>`;el.onclick=()=>choose(b.id);wrap.appendChild(el);});}
+  function render(){locked=false;const x=order[index];document.getElementById('qnum').textContent=index+1;document.getElementById('resName').textContent=x[1];const img=document.getElementById('resImage');img.src=x[3];img.style.display='block';document.getElementById('feedback').textContent='';document.getElementById('feedback').className='feedback';document.getElementById('correct').textContent=correct;document.getElementById('wrong').textContent=wrong;document.getElementById('points').textContent=points;document.getElementById('bar').style.width=((index)/order.length*100)+'%';const wrap=document.getElementById('bins');wrap.innerHTML='';[...bins].sort(()=>Math.random()-.5).forEach(b=>{const el=document.createElement('button');el.className='bin '+b.id;el.innerHTML=`<div class="binicon">${b.color}</div><div>${b.name}</div><div style="font-size:.78rem;margin-top:5px">${b.cat}</div>`;el.onclick=()=>choose(b.id);wrap.appendChild(el);});}
 function choose(id){if(locked)return;const item=order[index];if(id===item[2]){locked=true;correct++;points+=10;const f=document.getElementById('feedback');f.textContent='✅ ¡CORRECTO! Muy bien.';f.className='feedback ok';document.getElementById('correct').textContent=correct;document.getElementById('points').textContent=points;setTimeout(()=>{index++;if(index<order.length)render();else finish();},850);}else{wrong++;points=Math.max(0,points-1);const f=document.getElementById('feedback');f.textContent='❌ ¡INTÉNTALO NUEVAMENTE! Revisa el tipo de residuo.';f.className='feedback no';document.getElementById('wrong').textContent=wrong;document.getElementById('points').textContent=points;}}
 function finish(){
   document.getElementById('game').classList.add('hidden');
